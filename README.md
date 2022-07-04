@@ -6,9 +6,5 @@ This project builds an API for the purpose of accessing application data program
 
 The database is in PSQL, and will be interacted with using [node-postgres](https://node-postgres.com/).
 
-## Kanban
-
-### Link to Trello Board: https://trello.com/b/oGLgYiZo/be-nc-news
-
 ## Set up the Project
 The `db` folder contains all the data required for the project. We'll create two databases in this project. One for test data and one for real looking dev data. In order to connect to databases locally, you'll have to create two .env files: `.env.development` and `.env.test`. Into each file, add `PGDATABASE=<database_name>` where `database_name` is `nc_news` for `.env.development` file and `nc_news_test` for `.env.test` file. 
