@@ -9,6 +9,8 @@ const {
   patchArticleById,
 } = require("./controllers/articlesControllers");
 
+const { getUsers } = require("./controllers/usersControllers");
+
 const {
   handleInvalidRoute,
   handleCustomErrors,
@@ -19,6 +21,8 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/articles/:article_id", getArticleById);
 app.patch("/api/articles/:article_id", patchArticleById);
+
+app.get("/api/users", getUsers);
 
 app.all("*", handleInvalidRoute);
 
