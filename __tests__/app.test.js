@@ -12,7 +12,7 @@ afterAll(() => {
 });
 
 describe("Error handling for invalid routes", () => {
-  test("400: respond with the msg 'Invalid route'", () => {
+  test("404: respond with the msg 'Invalid route'", () => {
     return request(app)
       .get("/api/topic")
       .expect(404)
