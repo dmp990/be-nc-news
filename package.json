@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "setup-test-db": "psql -f ./db/setup-test.sql",
     "seed": "node ./db/seeds/run-seed.js",
-    "test": "npm run setup-test-db && jest",
-    "prepare": "husky install"
+    "test": "npm run setup-dbs && jest",
+    "prepare": "husky install",
+    "dev": "nodemon listen.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
     "husky": "^7.0.0",
     "jest": "^27.5.1",
     "jest-extended": "^2.0.0",
+    "nodemon": "^2.0.18",
     "pg-format": "^1.0.4",
     "supertest": "^6.2.4"
   },
