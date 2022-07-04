@@ -66,12 +66,102 @@ describe("GET api/articles/:article_id", () => {
         expect(msg).toBe("article_id must be a number");
       });
   });
-   test("404: respond with an error if there is no article with given article_id", () => {
-     return request(app)
-       .get("/api/articles/13")
-       .expect(404)
-       .then(({ body: { msg } }) => {
-         expect(msg).toBe("article not found");
-       });
-   });
+  test("404: respond with an error if there is no article with given article_id", () => {
+    return request(app)
+      .get("/api/articles/13")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("201: increment the votes when inc_votes in +ve and respond with the updated article object", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 30 })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 130,
+        });
+      });
+  });
+  test("201: decrement the votes when inc_votes in -ve and respond with the updated article object", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: -30 })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 70,
+        });
+      });
+  });
+  test("200: ignore everything else on patch body except inc_votes", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 100, author: "asad_ali" })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 200,
+        });
+      });
+  });
+  test("400: respond with error if article_id is not a number", () => {
+    return request(app)
+      .patch("/api/articles/one")
+      .send({ inc_votes: 100 })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no article for the specified article_id", () => {
+    return request(app)
+      .patch("/api/articles/13")
+      .send({ inc_votes: 100 })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
+  test("422: respond with error if patch body does not have inc_votes", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({})
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be provided");
+      });
+  });
+  test("422: respond with error if inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: "one" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be a number");
+      });
+  });
 });
