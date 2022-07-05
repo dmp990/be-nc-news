@@ -42,7 +42,7 @@ describe("GET /api/topics", () => {
 });
 
 describe("GET api/articles/:article_id", () => {
-  test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, and votes", () => {
+  test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
     return request(app)
       .get("/api/articles/1")
       .expect(200)
@@ -55,6 +55,7 @@ describe("GET api/articles/:article_id", () => {
           topic: "mitch",
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
+          comment_count: 11,
         });
       });
   });
@@ -165,7 +166,6 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 });
-
 
 describe("GET /api/users", () => {
   test("200: respond with an array of user objects with these properties: username, name, avatar_url", () => {
