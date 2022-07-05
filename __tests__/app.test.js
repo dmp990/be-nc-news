@@ -218,3 +218,49 @@ describe("GET /api/articles", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: respond with an array of comments for article_id with each comment having following properties: comment_id, votes, created_at, author, body", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(11);
+        comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  test("200: respond with empty array if there are no comments on the article.", () => {
+    return request(app)
+      .get("/api/articles/10/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+  test("400: respond with error if article if is not a number.", () => {
+    return request(app)
+      .get("/api/articles/one/comments")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: respond with error if no article exists for the given article_id.", () => {
+    return request(app)
+      .get("/api/articles/150/comments")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no article with that id");
+      });
+  });
+});
