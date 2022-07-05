@@ -1,4 +1,6 @@
 const db = require("../db/connection");
+const articles = require("../db/data/test-data/articles");
+const { checkExists } = require("../db/helpers/checkExists");
 
 exports.fetchArticleById = ({ article_id }) => {
   if (isNaN(+article_id)) {
@@ -77,10 +79,15 @@ exports.fetchArticles = () => {
     });
 };
 
-exports.fetchCommentsByArticleId = ({ article_id }) => {
+exports.fetchCommentsByArticleId = async ({ article_id }) => {
   if (isNaN(+article_id)) {
     return Promise.reject({ status: 400, msg: "article_id must be a number" });
   }
+
+  await checkExists("articles", "article_id", +article_id).catch(() => {
+    return Promise.reject({ status: 404, msg: "no article with that id" });
+  });
+
   return db
     .query(
       `SELECT comments.comment_id, comments.votes, comments.created_at,
@@ -89,14 +96,8 @@ exports.fetchCommentsByArticleId = ({ article_id }) => {
         WHERE article_id = $1;`,
       [+article_id]
     )
-    .then(({ rows, rowCount }) => {
-      if (rowCount) {
-        return rows;
-      }
-      return Promise.reject({
-        status: 404,
-        msg: "no comments on this article",
-      });
+    .then(({ rows }) => {
+      return rows;
     })
     .catch((err) => {
       return Promise.reject(err);
