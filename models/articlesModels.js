@@ -76,3 +76,29 @@ exports.fetchArticles = () => {
       return err;
     });
 };
+
+exports.fetchCommentsByArticleId = ({ article_id }) => {
+  if (isNaN(+article_id)) {
+    return Promise.reject({ status: 400, msg: "article_id must be a number" });
+  }
+  return db
+    .query(
+      `SELECT comments.comment_id, comments.votes, comments.created_at,
+        comments.author, comments.body
+        FROM comments
+        WHERE article_id = $1;`,
+      [+article_id]
+    )
+    .then(({ rows, rowCount }) => {
+      if (rowCount) {
+        return rows;
+      }
+      return Promise.reject({
+        status: 404,
+        msg: "no comments on this article",
+      });
+    })
+    .catch((err) => {
+      return Promise.reject(err);
+    });
+};
