@@ -274,7 +274,7 @@ describe("10. POST /api/articles/:article_id/comments", () => {
       .then(({ body: { comment } }) => {
         expect(comment).toEqual({
           comment_id: expect.any(Number),
-          article_id: expect.any(Number),
+          article_id: 1,
           votes: 0,
           created_at: expect.any(String),
           author: "butter_bridge",
@@ -284,12 +284,12 @@ describe("10. POST /api/articles/:article_id/comments", () => {
   });
   test("201: ignore other properties except username and body", () => {
     return request(app)
-      .post("/api/articles/1/comments")
+      .post("/api/articles/2/comments")
       .send({ username: "butter_bridge", body: "Hakuna Matata", votes: 5 })
       .expect(201)
       .then(({ body: { comment } }) => {
         expect(comment).toEqual({
-          article_id: expect.any(Number),
+          article_id: 2,
           comment_id: expect.any(Number),
           votes: 0,
           created_at: expect.any(String),
