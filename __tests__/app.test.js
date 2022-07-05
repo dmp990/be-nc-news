@@ -55,7 +55,7 @@ describe("GET api/articles/:article_id", () => {
           topic: "mitch",
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
-          comment_count: "11",
+          comment_count: 11,
         });
       });
   });

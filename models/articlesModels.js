@@ -6,8 +6,7 @@ exports.fetchArticleById = ({ article_id }) => {
   }
   return db
     .query(
-      `SELECT articles.*, COUNT(comments.comment_id)
-        AS comment_count
+      `SELECT articles.*, CAST (COUNT(comments.comment_id) AS INT) AS comment_count
         FROM articles
         JOIN comments
         ON articles.article_id = comments.article_id
