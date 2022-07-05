@@ -264,3 +264,74 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("10. POST /api/articles/:article_id/comments", () => {
+  test("201: respond with the posted comment", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: expect.any(Number),
+          article_id: 1,
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "Hakuna Matata",
+        });
+      });
+  });
+  test("201: ignore other properties except username and body", () => {
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata", votes: 5 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          article_id: 2,
+          comment_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "Hakuna Matata",
+        });
+      });
+  });
+  test("400: return an error if article_id is not a number", () => {
+    return request(app)
+      .post("/api/articles/one/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: return an error if there is no article with the given article_id", () => {
+    return request(app)
+      .post("/api/articles/150/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no article with that id");
+      });
+  });
+  test("400: return an error if post body does not contain username", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({ body: "Hakuna Matata" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("please provide username");
+      });
+  });
+  test("400: return an error if post body does not contain username", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({ username: "butter_bridge" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("please provide body");
+      });
+  });
+});

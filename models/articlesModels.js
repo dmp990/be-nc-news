@@ -103,3 +103,37 @@ exports.fetchCommentsByArticleId = async ({ article_id }) => {
       return Promise.reject(err);
     });
 };
+
+exports.insertCommentsByArticleId = async (
+  { article_id },
+  { username, body }
+) => {
+  if (isNaN(+article_id)) {
+    return Promise.reject({ status: 400, msg: "article_id must be a number" });
+  }
+
+  await checkExists("articles", "article_id", +article_id).catch(() => {
+    return Promise.reject({ status: 404, msg: "no article with that id" });
+  });
+
+  if (username === undefined) {
+    return Promise.reject({ status: 400, msg: "please provide username" });
+  }
+
+  if (body === undefined) {
+    return Promise.reject({ status: 400, msg: "please provide body" });
+  }
+
+  return db
+    .query(
+      `INSERT INTO comments (author, body, article_id)
+      VALUES ($1, $2, $3) RETURNING *;`,
+      [username, body, +article_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    })
+    .catch((err) => {
+      return err;
+    });
+};
