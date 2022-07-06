@@ -11,6 +11,5 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 
 exports.unhandledErrors = (err, req, res) => {
-  console.log("here")
   res.status(500).send({ msg: "I messed up" });
 };

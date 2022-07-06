@@ -26,9 +26,6 @@ exports.fetchArticleById = async ({ article_id }) => {
         msg: "article not found",
       });
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
 exports.updateArticleById = ({ article_id }, { inc_votes }) => {
@@ -54,9 +51,6 @@ exports.updateArticleById = ({ article_id }, { inc_votes }) => {
       }
       return Promise.reject({ status: 404, msg: "article not found" });
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
 exports.fetchArticles = async (query) => {
@@ -106,10 +100,6 @@ exports.fetchArticles = async (query) => {
     .then(({ rows }) => {
       return rows;
     })
-    .catch((err) => {
-      console.log(err, " << err");
-      return err;
-    });
 };
 
 exports.fetchCommentsByArticleId = async ({ article_id }) => {
@@ -132,9 +122,6 @@ exports.fetchCommentsByArticleId = async ({ article_id }) => {
     .then(({ rows }) => {
       return rows;
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
 exports.insertCommentsByArticleId = async (
@@ -166,7 +153,4 @@ exports.insertCommentsByArticleId = async (
     .then(({ rows }) => {
       return rows[0];
     })
-    .catch((err) => {
-      return err;
-    });
 };
