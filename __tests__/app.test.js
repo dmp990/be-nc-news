@@ -3,6 +3,7 @@ const app = require("../app");
 const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const testData = require("../db/data/test-data/index");
+const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
   return seed(testData);
@@ -511,13 +512,13 @@ describe("POST /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("GET /api", () => {
+describe.only("GET /api", () => {
   test("200: respond with the json object describing all the available endpoints", () => {
     return request(app)
       .get("/api")
       .expect(200)
       .then(({ body: { endpoints } }) => {
-        expect(Object.keys(endpoints)).toHaveLength(9);
+        expect(endpoints).toEqual(endPointsObj);
       });
   });
 });
