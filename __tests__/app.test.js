@@ -510,3 +510,14 @@ describe("POST /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("GET /api", () => {
+  test("200: respond with the json object describing all the available endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(Object.keys(endpoints)).toHaveLength(9);
+      });
+  });
+});
