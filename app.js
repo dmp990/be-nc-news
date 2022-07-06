@@ -16,7 +16,6 @@ const { getUsers } = require("./controllers/usersControllers");
 
 const { deleteCommentById } = require("./controllers/commentsControllers");
 
-const { getEndpoints } = require("./controllers/basicController");
 
 const {
   handleInvalidRoute,
@@ -25,7 +24,6 @@ const {
   handlePsqlErrors,
 } = require("./error_handlers/errors");
 
-app.get("/api", getEndpoints);
 
 app.get("/api/topics", getTopics);
 

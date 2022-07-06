@@ -41,6 +41,53 @@ describe("GET /api/topics", () => {
   });
 });
 
+describe("GET /api/users", () => {
+  test("200: respond with an array of user objects with these properties: username, name, avatar_url", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: respond with empty object", () => {
+    return request(app)
+      .delete("/api/comments/11")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+      });
+  });
+  test("400: respond with error if comment_id is not a number", () => {
+    return request(app)
+      .delete("/api/comments/one")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no comment with the given comment_id", () => {
+    return request(app)
+      .delete("/api/comments/20")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no comment with this id");
+      });
+  });
+});
+
 describe("GET api/articles/:article_id", () => {
   test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
     return request(app)
@@ -163,26 +210,6 @@ describe("PATCH /api/articles/:article_id", () => {
       .expect(422)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("inc_votes must be a number");
-      });
-  });
-});
-
-describe("GET /api/users", () => {
-  test("200: respond with an array of user objects with these properties: username, name, avatar_url", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body: { users } }) => {
-        expect(users).toHaveLength(4);
-        users.forEach((user) => {
-          expect(user).toEqual(
-            expect.objectContaining({
-              username: expect.any(String),
-              name: expect.any(String),
-              avatar_url: expect.any(String),
-            })
-          );
-        });
       });
   });
 });
@@ -480,44 +507,6 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("please provide body");
-      });
-  });
-});
-
-describe("DELETE /api/comments/:comment_id", () => {
-  test("204: respond with empty object", () => {
-    return request(app)
-      .delete("/api/comments/11")
-      .expect(204)
-      .then(({ body }) => {
-        expect(body).toEqual({});
-      });
-  });
-  test("400: respond with error if comment_id is not a number", () => {
-    return request(app)
-      .delete("/api/comments/one")
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("comment_id must be a number");
-      });
-  });
-  test("404: respond with error if there is no comment with the given comment_id", () => {
-    return request(app)
-      .delete("/api/comments/20")
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("no comment with this id");
-      });
-  });
-});
-
-describe("GET /api", () => {
-  test("200: respond with the json object describing all the available endpoints", () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body: { endpoints } }) => {
-        expect(Object.keys(endpoints)).toHaveLength(9);
       });
   });
 });
