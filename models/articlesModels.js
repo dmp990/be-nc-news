@@ -2,10 +2,11 @@ const db = require("../db/connection");
 const articles = require("../db/data/test-data/articles");
 const { checkExists } = require("../db/helpers/checkExists");
 
-exports.fetchArticleById = ({ article_id }) => {
+exports.fetchArticleById = async ({ article_id }) => {
   if (isNaN(+article_id)) {
     return Promise.reject({ status: 400, msg: "article_id must be a number" });
   }
+
   return db
     .query(
       `SELECT articles.*, CAST (COUNT(comments.comment_id) AS INT) AS comment_count
@@ -20,11 +21,11 @@ exports.fetchArticleById = ({ article_id }) => {
       if (result.rows.length) {
         return result.rows[0];
       }
-      return Promise.reject({ status: 404, msg: "article not found" });
+      return Promise.reject({
+        status: 404,
+        msg: "article not found",
+      });
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
 exports.updateArticleById = ({ article_id }, { inc_votes }) => {
@@ -50,33 +51,55 @@ exports.updateArticleById = ({ article_id }, { inc_votes }) => {
       }
       return Promise.reject({ status: 404, msg: "article not found" });
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
-exports.fetchArticles = () => {
-  return db
-    .query(
-      `
-        SELECT articles.article_id, articles.author, 
-        articles.title,
-        articles.topic, 
-        articles.created_at, articles.votes,
-        CAST (COUNT(comments.comment_id) AS INT)
-        AS comment_count
-        FROM articles
-        LEFT JOIN comments
-        ON articles.article_id = comments.article_id
-        GROUP BY articles.article_id
-        ORDER BY articles.created_at DESC;`
-    )
-    .then((result) => {
-      return result.rows;
-    })
-    .catch((err) => {
-      return err;
+exports.fetchArticles = async (query) => {
+  let isInvalid = false;
+  const validQueries = ["sort_by", "order", "topic"];
+  Object.keys(query).forEach((query) => {
+    if (!validQueries.includes(query)) {
+      isInvalid = true;
+    }
+  });
+  if (isInvalid) {
+    return Promise.reject({ status: 400, msg: "invalid query" });
+  }
+
+  const validSortBy = [
+    "author",
+    "title",
+    "article_id",
+    "topic",
+    "created_at",
+    "votes",
+    "comment_count",
+  ];
+  const validOrder = ["asc", "desc"];
+
+  const { sort_by = "created_at", order = "desc", topic } = query;
+
+  let queryStr = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, CAST (COUNT(comments.comment_id) AS INT) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `;
+
+  if (topic !== undefined) {
+    await checkExists("topics", "slug", topic).catch(() => {
+      return Promise.reject({ status: 400, msg: "topic does not exist" });
     });
+    queryStr += ` WHERE articles.topic LIKE '${topic}' `;
+  }
+
+  if (!validSortBy.includes(sort_by.toLowerCase())) {
+    return Promise.reject({ status: 400, msg: "invalid sort_by" });
+  }
+  if (!validOrder.includes(order.toLowerCase())) {
+    return Promise.reject({ status: 400, msg: "invalid order" });
+  }
+  queryStr += `GROUP BY articles.article_id ORDER BY ${sort_by} ${order};`;
+
+  return db
+    .query(queryStr)
+    .then(({ rows }) => {
+      return rows;
+    })
 };
 
 exports.fetchCommentsByArticleId = async ({ article_id }) => {
@@ -99,9 +122,6 @@ exports.fetchCommentsByArticleId = async ({ article_id }) => {
     .then(({ rows }) => {
       return rows;
     })
-    .catch((err) => {
-      return Promise.reject(err);
-    });
 };
 
 exports.insertCommentsByArticleId = async (
@@ -133,7 +153,4 @@ exports.insertCommentsByArticleId = async (
     .then(({ rows }) => {
       return rows[0];
     })
-    .catch((err) => {
-      return err;
-    });
 };

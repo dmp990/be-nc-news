@@ -31,7 +31,6 @@ app.post("/api/articles/:article_id/comments", postCommentByArticleId);
 
 app.get("/api/users", getUsers);
 
-
 app.all("*", handleInvalidRoute);
 
 app.use(handleCustomErrors);

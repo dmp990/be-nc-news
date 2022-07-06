@@ -10,6 +10,6 @@ exports.handleCustomErrors = (err, req, res, next) => {
   }
 };
 
-exports.unhandledErrors = (req, res) => {
+exports.unhandledErrors = (err, req, res) => {
   res.status(500).send({ msg: "I messed up" });
 };
