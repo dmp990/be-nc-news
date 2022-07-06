@@ -6,7 +6,6 @@ exports.deleteCommentById = (req, res, next) => {
       res.status(204).send();
     })
     .catch((err) => {
-      console.log(err, " << err");
       next(err);
     });
 };
