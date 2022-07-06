@@ -10,6 +10,14 @@ exports.handleCustomErrors = (err, req, res, next) => {
   }
 };
 
-exports.unhandledErrors = (err, req, res) => {
+exports.handlePsqlErrors = (err, req, res, next) => {
+  if (err.code) {
+    res.status("400").send("Bad request: psql error");
+  } else {
+    next(err);
+  }
+};
+
+exports.unhandledErrors = (req, res) => {
   res.status(500).send({ msg: "I messed up" });
 };
