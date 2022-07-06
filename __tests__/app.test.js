@@ -6,7 +6,6 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(2 * 5000)
   return seed(testData);
 });
 afterAll(() => {
@@ -513,7 +512,7 @@ describe("POST /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("GET /api", () => {
+describe.only("GET /api", () => {
   test("200: respond with the json object describing all the available endpoints", () => {
     return request(app)
       .get("/api")
