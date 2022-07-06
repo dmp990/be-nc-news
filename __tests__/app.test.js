@@ -413,7 +413,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("10. POST /api/articles/:article_id/comments", () => {
+describe("POST /api/articles/:article_id/comments", () => {
   test("201: respond with the posted comment", () => {
     return request(app)
       .post("/api/articles/1/comments")
@@ -480,6 +480,33 @@ describe("10. POST /api/articles/:article_id/comments", () => {
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("please provide body");
+      });
+  });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: respond with empty object", () => {
+    return request(app)
+      .delete("/api/comments/11")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+      });
+  });
+  test("400: respond with error if comment_id is not a number", () => {
+    return request(app)
+      .delete("/api/comments/one")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no comment with the given comment_id", () => {
+    return request(app)
+      .delete("/api/comments/20")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no comment with this id");
       });
   });
 });
