@@ -6,7 +6,7 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(50000);
+  jest.setTimeout(100000);
   return seed(testData);
 });
 afterAll(() => {
@@ -531,7 +531,7 @@ describe("GET /api/articles", () => {
   });
 });
 
-describe.skip("POST /api/articles", () => {
+describe("POST /api/articles", () => {
   test("201: respond with the newly posted article", () => {
     return request(app)
       .post("/api/articles")
@@ -553,6 +553,75 @@ describe.skip("POST /api/articles", () => {
           created_at: expect.any(String),
           comment_count: expect.any(Number),
         });
+      });
+  });
+  test("201: ignore other properties on post body", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "rogersop",
+        title: "Please god no more rain",
+        body: "Need I say more?",
+        topic: "mitch",
+        votes: 15,
+      })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "rogersop",
+          title: "Please god no more rain",
+          body: "Need I say more?",
+          topic: "mitch",
+          article_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          comment_count: expect.any(Number),
+        });
+      });
+  });
+
+  test("400: respond with error if there are not enough keys on the patch body", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        title: "Please god no more rain",
+        body: "Need I say more?",
+        topic: "mitch",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe(
+          "Incomplete patch body! Please provide all 4: author, title, body, and topic"
+        );
+      });
+  });
+
+  test("400: respond with the error if there is no author with the given name", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "asad",
+        title: "Please god no more rain",
+        body: "Need I say more?",
+        topic: "mitch",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("author does not exist");
+      });
+  });
+  test("400: respond with the error if there is no topic that matches the given topic", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "rogersop",
+        title: "Please god no more rain",
+        body: "Need I say more?",
+        topic: "kangaroos",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("topic does not exist");
       });
   });
 });

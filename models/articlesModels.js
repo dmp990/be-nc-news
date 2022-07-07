@@ -154,13 +154,37 @@ exports.insertCommentsByArticleId = async (
 };
 
 exports.insertArticle = async ({ author, title, body, topic }) => {
+  if (
+    author === undefined ||
+    title === undefined ||
+    body === undefined ||
+    topic === undefined
+  ) {
+    return Promise.reject({
+      status: 400,
+      msg: "Incomplete patch body! Please provide all 4: author, title, body, and topic",
+    });
+  }
+  await checkExists("users", "username", author).catch(() => {
+    return Promise.reject({
+      status: 400,
+      msg: "author does not exist",
+    });
+  });
+  await checkExists("topics", "slug", topic).catch(() => {
+    return Promise.reject({
+      status: 400,
+      msg: "topic does not exist",
+    });
+  });
+
   return db
     .query(
       `INSERT INTO articles (author, title, body, topic)
-  VALUES ($1, $2, $3, $4) RETURNING *`,
+  VALUES ($1, $2, $3, $4) RETURNING *, 0 AS comment_count`,
       [author, title, body, topic]
     )
     .then(({ rows }) => {
-      console.log(rows)
-    })
+      return rows[0];
+    });
 };
