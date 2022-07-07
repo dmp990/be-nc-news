@@ -63,6 +63,30 @@ describe("GET /api/users", () => {
   });
 });
 
+describe("GET /api/users/:username", () => {
+  test("200: responds with a user object which should have these properties: username, avatar_url, name", () => {
+    return request(app)
+      .get("/api/users/rogersop")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toEqual({
+          username: "rogersop",
+          name: "paul",
+          avatar_url:
+            "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+        });
+      });
+  });
+  test("200: responds with an empty object when there is no user with the specified username", () => {
+    return request(app)
+      .get("/api/users/asad")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toEqual({});
+      });
+  });
+});
+
 describe("DELETE /api/comments/:comment_id", () => {
   test("204: respond with empty object", () => {
     return request(app)
@@ -90,7 +114,9 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe("GET api/articles/:article_id", () => {
+describe("PATCH /api/comments/:comment_id", () => {});
+
+describe("GET /api/articles/:article_id", () => {
   test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
     return request(app)
       .get("/api/articles/1")
