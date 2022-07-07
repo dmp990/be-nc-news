@@ -114,7 +114,92 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe("PATCH /api/comments/:comment_id", () => {});
+describe("PATCH /api/comments/:comment_id", () => {
+  test("201: increment the votes of specified comment when inc_votes is +ve and respond with the updated comment object", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: 5 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 21,
+        });
+      });
+  });
+  test("201: decrement the votes of specified comment when inc_votes is -ve and respond with the updated comment object", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: -6 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 10,
+        });
+      });
+  });
+  test("201: ignore everthing in the patch body except inc_votes", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: -6, author: "asad" })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 10,
+        });
+      });
+  });
+  test("400: respond with error if comment_id is not a number", () => {
+    return request(app)
+      .patch("/api/comments/one")
+      .send({ inc_votes: 5 })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no comment with the specified id", () => {
+    return request(app)
+      .patch("/api/comments/20")
+      .send({ inc_votes: 5 })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no comment with this id");
+      });
+  });
+  test("422: respond with error if inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: "five" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be a number");
+      });
+  });
+  test("422: respond with error if inc_votes is not a given in the patch body", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ author: "asad" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("please provide inc_votes");
+      });
+  });
+});
 
 describe("GET /api/articles/:article_id", () => {
   test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
