@@ -6,7 +6,7 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(200000);
+  jest.setTimeout(300000);
   return seed(testData);
 });
 afterAll(() => {
@@ -367,6 +367,7 @@ describe("GET /api/articles", () => {
               topic: expect.any(String),
               created_at: expect.any(String),
               votes: expect.any(Number),
+              total_count: 12,
               comment_count: expect.any(Number),
             })
           );
@@ -403,6 +404,7 @@ describe("GET /api/articles", () => {
                 topic: expect.any(String),
                 created_at: expect.any(String),
                 votes: expect.any(Number),
+                total_count: 12,
                 comment_count: expect.any(Number),
               })
             );
@@ -429,6 +431,7 @@ describe("GET /api/articles", () => {
                 topic: expect.any(String),
                 created_at: expect.any(String),
                 votes: expect.any(Number),
+                total_count: 12,
                 comment_count: expect.any(Number),
               })
             );
@@ -453,6 +456,7 @@ describe("GET /api/articles", () => {
             topic: "cats",
             created_at: "2020-08-03T13:14:00.000Z",
             votes: 0,
+            total_count: 12,
             comment_count: 2,
           });
         });
@@ -477,6 +481,7 @@ describe("GET /api/articles", () => {
                 topic: "mitch",
                 created_at: expect.any(String),
                 votes: expect.any(Number),
+                total_count: 12,
                 comment_count: expect.any(Number),
               })
             );
@@ -551,6 +556,7 @@ describe("GET /api/articles", () => {
               created_at: "2020-10-11T11:24:00.000Z",
               votes: 0,
               comment_count: 0,
+              total_count: 12,
             });
           });
       });
@@ -568,6 +574,7 @@ describe("GET /api/articles", () => {
               created_at: "2020-01-15T22:21:00.000Z",
               votes: 0,
               comment_count: 0,
+              total_count: 12,
             });
           });
       });
@@ -587,6 +594,16 @@ describe("GET /api/articles", () => {
             expect(msg).toBe("p must be a number");
           });
       });
+    });
+    test("200: should have a total count property", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          articles.forEach((article) => {
+            expect(article).toHaveProperty("total_count");
+          });
+        });
     });
   });
 });

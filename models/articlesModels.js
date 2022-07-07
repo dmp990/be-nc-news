@@ -78,7 +78,8 @@ exports.fetchArticles = async (query) => {
 
   const { sort_by = "created_at", order = "desc", topic, limit, p } = query;
 
-  let queryStr = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, CAST (COUNT(comments.comment_id) AS INT) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `;
+  let queryStr = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, CAST (COUNT(comments.comment_id) AS INT) AS comment_count, CAST ((SELECT COUNT(*)
+FROM articles) AS INT) AS total_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `;
 
   if (topic !== undefined) {
     await checkExists("topics", "slug", topic).catch(() => {
