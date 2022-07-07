@@ -6,7 +6,7 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(100000);
+  jest.setTimeout(200000);
   return seed(testData);
 });
 afterAll(() => {
@@ -352,12 +352,12 @@ describe("PATCH /api/articles/:article_id", () => {
 });
 
 describe("GET /api/articles", () => {
-  test("200: respond with an array of article objects with these properties: author, title, article_id, topic, created_at, votes, comment_count", () => {
+  test("200: respond with an array of article objects with these properties: author, title, article_id, topic, created_at, votes, comment_count, only show first 10 articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article).toEqual(
             expect.objectContaining({
@@ -389,7 +389,7 @@ describe("GET /api/articles", () => {
         .get("/api/articles?sort_by=comment_count")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles).toHaveLength(12);
+          expect(articles).toHaveLength(10);
           expect(articles).toBeSorted({
             key: "comment_count",
             descending: true,
@@ -415,7 +415,7 @@ describe("GET /api/articles", () => {
         .get("/api/articles?sort_by=comment_count&order=asc")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles).toHaveLength(12);
+          expect(articles).toHaveLength(10);
           expect(articles).toBeSorted({
             key: "comment_count",
             descending: false,
@@ -463,7 +463,7 @@ describe("GET /api/articles", () => {
         .get("/api/articles?sort_by=comment_count&order=asc&topic=mitch")
         .expect(200)
         .then(({ body: { articles } }) => {
-          expect(articles).toHaveLength(11);
+          expect(articles).toHaveLength(10);
           expect(articles).toBeSorted({
             key: "comment_count",
             descending: false,
@@ -527,6 +527,66 @@ describe("GET /api/articles", () => {
         .then(({ body: { msg } }) => {
           expect(msg).toBe("topic does not exist");
         });
+    });
+    describe("Pagination queries:", () => {
+      test("200: take the limit query and restrict the number of articles to that", () => {
+        return request(app)
+          .get("/api/articles?limit=5")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toHaveLength(5);
+          });
+      });
+      test("200: take the p query and show that page", () => {
+        return request(app)
+          .get("/api/articles?limit=3&p=2")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toHaveLength(3);
+            expect(articles[0]).toEqual({
+              author: "butter_bridge",
+              title: "Moustache",
+              article_id: 12,
+              topic: "mitch",
+              created_at: "2020-10-11T11:24:00.000Z",
+              votes: 0,
+              comment_count: 0,
+            });
+          });
+      });
+      test("200: p should work without limit", () => {
+        return request(app)
+          .get("/api/articles?p=2")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toHaveLength(2);
+            expect(articles[0]).toEqual({
+              author: "icellusedkars",
+              title: "Am I a cat?",
+              article_id: 11,
+              topic: "mitch",
+              created_at: "2020-01-15T22:21:00.000Z",
+              votes: 0,
+              comment_count: 0,
+            });
+          });
+      });
+      test("400: respond with error if limit is not a number", () => {
+        return request(app)
+          .get("/api/articles?limit=one")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("limit must be a number");
+          });
+      });
+      test("400: respond with error if p is not a number", () => {
+        return request(app)
+          .get("/api/articles?p=one")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("p must be a number");
+          });
+      });
     });
   });
 });
