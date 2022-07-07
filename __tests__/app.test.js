@@ -6,7 +6,7 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(10 * 5000);
+  jest.setTimeout(50000);
   return seed(testData);
 });
 afterAll(() => {
