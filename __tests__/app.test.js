@@ -524,7 +524,7 @@ describe("GET /api", () => {
   });
 });
 
-describe.only("GET /", () => {
+describe("GET /", () => {
   test("200: respond with the message that asks user to visit /api endpoint", () => {
     return request(app)
       .get("/")
