@@ -55,7 +55,7 @@ exports.updateArticleById = ({ article_id }, { inc_votes }) => {
 
 exports.fetchArticles = async (query) => {
   let isInvalid = false;
-  const validQueries = ["sort_by", "order", "topic"];
+  const validQueries = ["sort_by", "order", "topic", "limit", "p"];
   Object.keys(query).forEach((query) => {
     if (!validQueries.includes(query)) {
       isInvalid = true;
@@ -76,9 +76,10 @@ exports.fetchArticles = async (query) => {
   ];
   const validOrder = ["asc", "desc"];
 
-  const { sort_by = "created_at", order = "desc", topic } = query;
+  const { sort_by = "created_at", order = "desc", topic, limit, p } = query;
 
-  let queryStr = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, CAST (COUNT(comments.comment_id) AS INT) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `;
+  let queryStr = `SELECT articles.article_id, articles.author, articles.title, articles.topic, articles.created_at, articles.votes, CAST (COUNT(comments.comment_id) AS INT) AS comment_count, CAST ((SELECT COUNT(*)
+FROM articles) AS INT) AS total_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `;
 
   if (topic !== undefined) {
     await checkExists("topics", "slug", topic).catch(() => {
@@ -93,7 +94,22 @@ exports.fetchArticles = async (query) => {
   if (!validOrder.includes(order.toLowerCase())) {
     return Promise.reject({ status: 400, msg: "invalid order" });
   }
-  queryStr += `GROUP BY articles.article_id ORDER BY ${sort_by} ${order};`;
+  if (limit !== undefined && isNaN(+limit)) {
+    return Promise.reject({ status: 400, msg: "limit must be a number" });
+  }
+  if (p !== undefined && isNaN(+p)) {
+    return Promise.reject({ status: 400, msg: "p must be a number" });
+  }
+
+  queryStr += `GROUP BY articles.article_id ORDER BY ${sort_by} ${order} `;
+
+  if (limit === undefined) {
+    queryStr += `LIMIT 10 OFFSET `;
+    p === undefined ? (queryStr += `0`) : (queryStr += `${10 * (+p - 1)}`);
+  } else {
+    queryStr += `LIMIT ${+limit} OFFSET `;
+    p === undefined ? (queryStr += `0`) : (queryStr += `${+limit * (+p - 1)}`);
+  }
 
   return db.query(queryStr).then(({ rows }) => {
     return rows;
