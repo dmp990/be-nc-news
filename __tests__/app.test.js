@@ -523,3 +523,16 @@ describe("GET /api", () => {
       });
   });
 });
+
+describe.only("GET /", () => {
+  test("200: respond with the message that asks user to visit /api endpoint", () => {
+    return request(app)
+      .get("/")
+      .expect(200)
+      .then(({ body: { message } }) => {
+        expect(message).toBe(
+          "Welcome! Please visit /api endpoint to get information about all other endpoints"
+        );
+      });
+  });
+});
