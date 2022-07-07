@@ -1,5 +1,5 @@
 const db = require("../db/connection");
-const articles = require("../db/data/test-data/articles");
+
 const { checkExists } = require("../db/helpers/checkExists");
 
 exports.fetchArticleById = async ({ article_id }) => {
@@ -25,7 +25,7 @@ exports.fetchArticleById = async ({ article_id }) => {
         status: 404,
         msg: "article not found",
       });
-    })
+    });
 };
 
 exports.updateArticleById = ({ article_id }, { inc_votes }) => {
@@ -50,7 +50,7 @@ exports.updateArticleById = ({ article_id }, { inc_votes }) => {
         return result.rows[0];
       }
       return Promise.reject({ status: 404, msg: "article not found" });
-    })
+    });
 };
 
 exports.fetchArticles = async (query) => {
@@ -95,11 +95,9 @@ exports.fetchArticles = async (query) => {
   }
   queryStr += `GROUP BY articles.article_id ORDER BY ${sort_by} ${order};`;
 
-  return db
-    .query(queryStr)
-    .then(({ rows }) => {
-      return rows;
-    })
+  return db.query(queryStr).then(({ rows }) => {
+    return rows;
+  });
 };
 
 exports.fetchCommentsByArticleId = async ({ article_id }) => {
@@ -121,7 +119,7 @@ exports.fetchCommentsByArticleId = async ({ article_id }) => {
     )
     .then(({ rows }) => {
       return rows;
-    })
+    });
 };
 
 exports.insertCommentsByArticleId = async (
@@ -152,5 +150,17 @@ exports.insertCommentsByArticleId = async (
     )
     .then(({ rows }) => {
       return rows[0];
+    });
+};
+
+exports.insertArticle = async ({ author, title, body, topic }) => {
+  return db
+    .query(
+      `INSERT INTO articles (author, title, body, topic)
+  VALUES ($1, $2, $3, $4) RETURNING *`,
+      [author, title, body, topic]
+    )
+    .then(({ rows }) => {
+      console.log(rows)
     })
 };

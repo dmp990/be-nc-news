@@ -24,6 +24,30 @@ describe("Error handling for invalid routes", () => {
   });
 });
 
+describe("GET /api", () => {
+  test("200: respond with the json object describing all the available endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(endpoints).toEqual(endPointsObj);
+      });
+  });
+});
+
+describe("GET /", () => {
+  test("200: respond with the message that asks user to visit /api endpoint", () => {
+    return request(app)
+      .get("/")
+      .expect(200)
+      .then(({ body: { message } }) => {
+        expect(message).toBe(
+          "Welcome! Please visit /api endpoint to get information about all other endpoints"
+        );
+      });
+  });
+});
+
 describe("GET /api/topics", () => {
   test("200: respond with an array of topic object each of which should have two properties: slug and description", () => {
     return request(app)
@@ -507,6 +531,32 @@ describe("GET /api/articles", () => {
   });
 });
 
+describe.skip("POST /api/articles", () => {
+  test("201: respond with the newly posted article", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "rogersop",
+        title: "Please god no more rain",
+        body: "Need I say more?",
+        topic: "mitch",
+      })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "rogersop",
+          title: "Please god no more rain",
+          body: "Need I say more?",
+          topic: "mitch",
+          article_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          comment_count: expect.any(Number),
+        });
+      });
+  });
+});
+
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: respond with an array of comments for article_id with each comment having following properties: comment_id, votes, created_at, author, body", () => {
     return request(app)
@@ -620,30 +670,6 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("please provide body");
-      });
-  });
-});
-
-describe("GET /api", () => {
-  test("200: respond with the json object describing all the available endpoints", () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body: { endpoints } }) => {
-        expect(endpoints).toEqual(endPointsObj);
-      });
-  });
-});
-
-describe("GET /", () => {
-  test("200: respond with the message that asks user to visit /api endpoint", () => {
-    return request(app)
-      .get("/")
-      .expect(200)
-      .then(({ body: { message } }) => {
-        expect(message).toBe(
-          "Welcome! Please visit /api endpoint to get information about all other endpoints"
-        );
       });
   });
 });
