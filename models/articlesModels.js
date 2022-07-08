@@ -116,7 +116,17 @@ FROM articles) AS INT) AS total_count FROM articles LEFT JOIN comments ON articl
   });
 };
 
-exports.fetchCommentsByArticleId = async ({ article_id }) => {
+exports.fetchCommentsByArticleId = async ({ article_id }, query) => {
+  let isInvalid = false;
+  const validQueries = ["limit", "p"];
+  Object.keys(query).forEach((query) => {
+    if (!validQueries.includes(query)) {
+      isInvalid = true;
+    }
+  });
+  if (isInvalid) {
+    return Promise.reject({ status: 400, msg: "invalid query" });
+  }
   if (isNaN(+article_id)) {
     return Promise.reject({ status: 400, msg: "article_id must be a number" });
   }
@@ -125,17 +135,31 @@ exports.fetchCommentsByArticleId = async ({ article_id }) => {
     return Promise.reject({ status: 404, msg: "no article with that id" });
   });
 
-  return db
-    .query(
-      `SELECT comments.comment_id, comments.votes, comments.created_at,
+  const { limit, p } = query;
+
+  if (limit !== undefined && isNaN(+limit)) {
+    return Promise.reject({ status: 400, msg: "limit must be a number" });
+  }
+  if (p !== undefined && isNaN(+p)) {
+    return Promise.reject({ status: 400, msg: "p must be a number" });
+  }
+
+  let queryStr = `SELECT comments.comment_id, comments.votes, 
+        comments.created_at,
         comments.author, comments.body
         FROM comments
-        WHERE article_id = $1;`,
-      [+article_id]
-    )
-    .then(({ rows }) => {
-      return rows;
-    });
+        WHERE article_id = $1 `;
+
+  if (limit === undefined) {
+    queryStr += `LIMIT 10 OFFSET `;
+    p === undefined ? (queryStr += `0`) : (queryStr += `${10 * (+p - 1)}`);
+  } else {
+    queryStr += `LIMIT ${+limit} OFFSET `;
+    p === undefined ? (queryStr += `0`) : (queryStr += `${+limit * (+p - 1)}`);
+  }
+  return db.query(queryStr, [+article_id]).then(({ rows }) => {
+    return rows;
+  });
 };
 
 exports.insertCommentsByArticleId = async (
