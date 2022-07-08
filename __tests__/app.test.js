@@ -7,7 +7,7 @@ const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
   return seed(testData);
-}, 10000);
+}, 20000);
 afterAll(() => {
   db.end();
 });
@@ -23,17 +23,6 @@ describe("Error handling for invalid routes", () => {
   });
 });
 
-describe("GET /api", () => {
-  test("200: respond with the json object describing all the available endpoints", () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body: { endpoints } }) => {
-        expect(endpoints).toEqual(endPointsObj);
-      });
-  });
-});
-
 describe("GET /", () => {
   test("200: respond with the message that asks user to visit /api endpoint", () => {
     return request(app)
@@ -43,6 +32,17 @@ describe("GET /", () => {
         expect(message).toBe(
           "Welcome! Please visit /api endpoint to get information about all other endpoints"
         );
+      });
+  });
+});
+
+describe("GET /api", () => {
+  test("200: respond with the json object describing all the available endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(endpoints).toEqual(endPointsObj);
       });
   });
 });
@@ -66,286 +66,41 @@ describe("GET /api/topics", () => {
   });
 });
 
-describe("GET /api/users", () => {
-  test("200: respond with an array of user objects with these properties: username, name, avatar_url", () => {
+describe("POST /api/topics", () => {
+  test("201: insert a new topic into the database and repond with the posted topic", () => {
     return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body: { users } }) => {
-        expect(users).toHaveLength(4);
-        users.forEach((user) => {
-          expect(user).toEqual(
-            expect.objectContaining({
-              username: expect.any(String),
-              name: expect.any(String),
-              avatar_url: expect.any(String),
-            })
-          );
-        });
+      .post("/api/topics")
+      .send({ slug: "dog", description: "Not cats" })
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic).toEqual({ slug: "dog", description: "Not cats" });
       });
   });
-});
-
-describe("GET /api/users/:username", () => {
-  test("200: responds with a user object which should have these properties: username, avatar_url, name", () => {
+  test("400: respond with error if slug is not given", () => {
     return request(app)
-      .get("/api/users/rogersop")
-      .expect(200)
-      .then(({ body: { user } }) => {
-        expect(user).toEqual({
-          username: "rogersop",
-          name: "paul",
-          avatar_url:
-            "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
-        });
-      });
-  });
-  test("200: responds with an empty object when there is no user with the specified username", () => {
-    return request(app)
-      .get("/api/users/asad")
-      .expect(200)
-      .then(({ body: { user } }) => {
-        expect(user).toEqual({});
-      });
-  });
-});
-
-describe("DELETE /api/comments/:comment_id", () => {
-  test("204: respond with empty object", () => {
-    return request(app)
-      .delete("/api/comments/11")
-      .expect(204)
-      .then(({ body }) => {
-        expect(body).toEqual({});
-      });
-  });
-  test("400: respond with error if comment_id is not a number", () => {
-    return request(app)
-      .delete("/api/comments/one")
+      .post("/api/topics")
+      .send({ description: "Not cats" })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("comment_id must be a number");
+        expect(msg).toBe("Please provide both slug and description");
       });
   });
-  test("404: respond with error if there is no comment with the given comment_id", () => {
+  test("400: respond with error if description is not given", () => {
     return request(app)
-      .delete("/api/comments/20")
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("no comment with this id");
-      });
-  });
-});
-
-describe("PATCH /api/comments/:comment_id", () => {
-  test("201: increment the votes of specified comment when inc_votes is +ve and respond with the updated comment object", () => {
-    return request(app)
-      .patch("/api/comments/1")
-      .send({ inc_votes: 5 })
-      .expect(201)
-      .then(({ body: { comment } }) => {
-        expect(comment).toEqual({
-          comment_id: 1,
-          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-          article_id: 9,
-          author: "butter_bridge",
-          created_at: "2020-04-06T12:17:00.000Z",
-          votes: 21,
-        });
-      });
-  });
-  test("201: decrement the votes of specified comment when inc_votes is -ve and respond with the updated comment object", () => {
-    return request(app)
-      .patch("/api/comments/1")
-      .send({ inc_votes: -6 })
-      .expect(201)
-      .then(({ body: { comment } }) => {
-        expect(comment).toEqual({
-          comment_id: 1,
-          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-          article_id: 9,
-          author: "butter_bridge",
-          created_at: "2020-04-06T12:17:00.000Z",
-          votes: 10,
-        });
-      });
-  });
-  test("201: ignore everthing in the patch body except inc_votes", () => {
-    return request(app)
-      .patch("/api/comments/1")
-      .send({ inc_votes: -6, author: "asad" })
-      .expect(201)
-      .then(({ body: { comment } }) => {
-        expect(comment).toEqual({
-          comment_id: 1,
-          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-          article_id: 9,
-          author: "butter_bridge",
-          created_at: "2020-04-06T12:17:00.000Z",
-          votes: 10,
-        });
-      });
-  });
-  test("400: respond with error if comment_id is not a number", () => {
-    return request(app)
-      .patch("/api/comments/one")
-      .send({ inc_votes: 5 })
+      .post("/api/topics")
+      .send({ slug: "Dog" })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("comment_id must be a number");
+        expect(msg).toBe("Please provide both slug and description");
       });
   });
-  test("404: respond with error if there is no comment with the specified id", () => {
+  test("400: respond with error if slug already exists in the db", () => {
     return request(app)
-      .patch("/api/comments/20")
-      .send({ inc_votes: 5 })
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("no comment with this id");
-      });
-  });
-  test("422: respond with error if inc_votes is not a number", () => {
-    return request(app)
-      .patch("/api/comments/1")
-      .send({ inc_votes: "five" })
-      .expect(422)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("inc_votes must be a number");
-      });
-  });
-  test("422: respond with error if inc_votes is not a given in the patch body", () => {
-    return request(app)
-      .patch("/api/comments/1")
-      .send({ author: "asad" })
-      .expect(422)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("please provide inc_votes");
-      });
-  });
-});
-
-describe("GET /api/articles/:article_id", () => {
-  test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
-    return request(app)
-      .get("/api/articles/1")
-      .expect(200)
-      .then(({ body: { article } }) => {
-        expect(article).toEqual({
-          author: "butter_bridge",
-          title: "Living in the shadow of a great man",
-          article_id: 1,
-          body: "I find this existence challenging",
-          topic: "mitch",
-          created_at: "2020-07-09T20:11:00.000Z",
-          votes: 100,
-          comment_count: 11,
-        });
-      });
-  });
-  test("400: respond with an error if article_id is not a number", () => {
-    return request(app)
-      .get("/api/articles/one")
+      .post("/api/topics")
+      .send({ slug: "mitch", description: "Not cats" })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("article_id must be a number");
-      });
-  });
-  test("404: respond with an error if there is no article with given article_id", () => {
-    return request(app)
-      .get("/api/articles/13")
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("article not found");
-      });
-  });
-});
-
-describe("PATCH /api/articles/:article_id", () => {
-  test("201: increment the votes when inc_votes in +ve and respond with the updated article object", () => {
-    return request(app)
-      .patch("/api/articles/1")
-      .send({ inc_votes: 30 })
-      .expect(201)
-      .then(({ body: { article } }) => {
-        expect(article).toEqual({
-          author: "butter_bridge",
-          title: "Living in the shadow of a great man",
-          article_id: 1,
-          body: "I find this existence challenging",
-          topic: "mitch",
-          created_at: "2020-07-09T20:11:00.000Z",
-          votes: 130,
-        });
-      });
-  });
-  test("201: decrement the votes when inc_votes in -ve and respond with the updated article object", () => {
-    return request(app)
-      .patch("/api/articles/1")
-      .send({ inc_votes: -30 })
-      .expect(201)
-      .then(({ body: { article } }) => {
-        expect(article).toEqual({
-          author: "butter_bridge",
-          title: "Living in the shadow of a great man",
-          article_id: 1,
-          body: "I find this existence challenging",
-          topic: "mitch",
-          created_at: "2020-07-09T20:11:00.000Z",
-          votes: 70,
-        });
-      });
-  });
-  test("200: ignore everything else on patch body except inc_votes", () => {
-    return request(app)
-      .patch("/api/articles/1")
-      .send({ inc_votes: 100, author: "asad_ali" })
-      .expect(201)
-      .then(({ body: { article } }) => {
-        expect(article).toEqual({
-          author: "butter_bridge",
-          title: "Living in the shadow of a great man",
-          article_id: 1,
-          body: "I find this existence challenging",
-          topic: "mitch",
-          created_at: "2020-07-09T20:11:00.000Z",
-          votes: 200,
-        });
-      });
-  });
-  test("400: respond with error if article_id is not a number", () => {
-    return request(app)
-      .patch("/api/articles/one")
-      .send({ inc_votes: 100 })
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("article_id must be a number");
-      });
-  });
-  test("404: respond with error if there is no article for the specified article_id", () => {
-    return request(app)
-      .patch("/api/articles/13")
-      .send({ inc_votes: 100 })
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("article not found");
-      });
-  });
-  test("422: respond with error if patch body does not have inc_votes", () => {
-    return request(app)
-      .patch("/api/articles/1")
-      .send({})
-      .expect(422)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("inc_votes must be provided");
-      });
-  });
-  test("422: respond with error if inc_votes is not a number", () => {
-    return request(app)
-      .patch("/api/articles/1")
-      .send({ inc_votes: "one" })
-      .expect(422)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("inc_votes must be a number");
+        expect(msg).toBe("slug already exists!");
       });
   });
 });
@@ -702,73 +457,155 @@ describe("POST /api/articles", () => {
   });
 });
 
-describe("POST /api/articles/:article_id/comments", () => {
-  test("201: respond with the posted comment", () => {
+describe("GET /api/articles/:article_id", () => {
+  test("200: respond with an article object with these properties: author, title, article_id, body, topic, created_at, votes, and comment_count", () => {
     return request(app)
-      .post("/api/articles/1/comments")
-      .send({ username: "butter_bridge", body: "Hakuna Matata" })
-      .expect(201)
-      .then(({ body: { comment } }) => {
-        expect(comment).toEqual({
-          comment_id: expect.any(Number),
+      .get("/api/articles/1")
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
           article_id: 1,
-          votes: 0,
-          created_at: expect.any(String),
-          author: "butter_bridge",
-          body: "Hakuna Matata",
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 100,
+          comment_count: 11,
         });
       });
   });
-  test("201: ignore other properties except username and body", () => {
+  test("400: respond with an error if article_id is not a number", () => {
     return request(app)
-      .post("/api/articles/2/comments")
-      .send({ username: "butter_bridge", body: "Hakuna Matata", votes: 5 })
-      .expect(201)
-      .then(({ body: { comment } }) => {
-        expect(comment).toEqual({
-          article_id: 2,
-          comment_id: expect.any(Number),
-          votes: 0,
-          created_at: expect.any(String),
-          author: "butter_bridge",
-          body: "Hakuna Matata",
-        });
-      });
-  });
-  test("400: return an error if article_id is not a number", () => {
-    return request(app)
-      .post("/api/articles/one/comments")
-      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .get("/api/articles/one")
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("article_id must be a number");
       });
   });
-  test("404: return an error if there is no article with the given article_id", () => {
+  test("404: respond with an error if there is no article with given article_id", () => {
     return request(app)
-      .post("/api/articles/150/comments")
-      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .get("/api/articles/13")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("no article with that id");
+        expect(msg).toBe("article not found");
       });
   });
-  test("400: return an error if post body does not contain username", () => {
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("201: increment the votes when inc_votes in +ve and respond with the updated article object", () => {
     return request(app)
-      .post("/api/articles/1/comments")
-      .send({ body: "Hakuna Matata" })
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("please provide username");
+      .patch("/api/articles/1")
+      .send({ inc_votes: 30 })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 130,
+        });
       });
   });
-  test("400: return an error if post body does not contain username", () => {
+  test("201: decrement the votes when inc_votes in -ve and respond with the updated article object", () => {
     return request(app)
-      .post("/api/articles/1/comments")
-      .send({ username: "butter_bridge" })
+      .patch("/api/articles/1")
+      .send({ inc_votes: -30 })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 70,
+        });
+      });
+  });
+  test("200: ignore everything else on patch body except inc_votes", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 100, author: "asad_ali" })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          article_id: 1,
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 200,
+        });
+      });
+  });
+  test("400: respond with error if article_id is not a number", () => {
+    return request(app)
+      .patch("/api/articles/one")
+      .send({ inc_votes: 100 })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("please provide body");
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no article for the specified article_id", () => {
+    return request(app)
+      .patch("/api/articles/13")
+      .send({ inc_votes: 100 })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
+  test("422: respond with error if patch body does not have inc_votes", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({})
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be provided");
+      });
+  });
+  test("422: respond with error if inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: "one" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be a number");
+      });
+  });
+});
+
+describe("DELETE /api/articles/:article_id", () => {
+  test("204: delete the specified article and return empty object", () => {
+    return request(app)
+      .delete("/api/articles/12")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+      });
+  });
+  test("400: respond with error if article_id is not a number", () => {
+    return request(app)
+      .delete("/api/articles/one")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no article with the given id", () => {
+    return request(app)
+      .delete("/api/articles/20")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no article with this id");
       });
   });
 });
@@ -887,41 +724,235 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("POST /api/topics", () => {
-  test("201: insert a new topic into the database and repond with the posted topic", () => {
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201: respond with the posted comment", () => {
     return request(app)
-      .post("/api/topics")
-      .send({ slug: "dog", description: "Not cats" })
+      .post("/api/articles/1/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
       .expect(201)
-      .then(({ body: { topic } }) => {
-        expect(topic).toEqual({ slug: "dog", description: "Not cats" });
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: expect.any(Number),
+          article_id: 1,
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "Hakuna Matata",
+        });
       });
   });
-  test("400: respond with error if slug is not given", () => {
+  test("201: ignore other properties except username and body", () => {
     return request(app)
-      .post("/api/topics")
-      .send({ description: "Not cats" })
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("Please provide both slug and description");
+      .post("/api/articles/2/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata", votes: 5 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          article_id: 2,
+          comment_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "Hakuna Matata",
+        });
       });
   });
-  test("400: respond with error if description is not given", () => {
+  test("400: return an error if article_id is not a number", () => {
     return request(app)
-      .post("/api/topics")
-      .send({ slug: "Dog" })
+      .post("/api/articles/one/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Please provide both slug and description");
+        expect(msg).toBe("article_id must be a number");
       });
   });
-  test("400: respond with error if slug already exists in the db", () => {
+  test("404: return an error if there is no article with the given article_id", () => {
     return request(app)
-      .post("/api/topics")
-      .send({ slug: "mitch", description: "Not cats" })
+      .post("/api/articles/150/comments")
+      .send({ username: "butter_bridge", body: "Hakuna Matata" })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no article with that id");
+      });
+  });
+  test("400: return an error if post body does not contain username", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({ body: "Hakuna Matata" })
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("slug already exists!");
+        expect(msg).toBe("please provide username");
+      });
+  });
+  test("400: return an error if post body does not contain username", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({ username: "butter_bridge" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("please provide body");
       });
   });
 });
+
+describe("GET /api/users", () => {
+  test("200: respond with an array of user objects with these properties: username, name, avatar_url", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: responds with a user object which should have these properties: username, avatar_url, name", () => {
+    return request(app)
+      .get("/api/users/rogersop")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toEqual({
+          username: "rogersop",
+          name: "paul",
+          avatar_url:
+            "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+        });
+      });
+  });
+  test("200: responds with an empty object when there is no user with the specified username", () => {
+    return request(app)
+      .get("/api/users/asad")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toEqual({});
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("201: increment the votes of specified comment when inc_votes is +ve and respond with the updated comment object", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: 5 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 21,
+        });
+      });
+  });
+  test("201: decrement the votes of specified comment when inc_votes is -ve and respond with the updated comment object", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: -6 })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 10,
+        });
+      });
+  });
+  test("201: ignore everthing in the patch body except inc_votes", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: -6, author: "asad" })
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toEqual({
+          comment_id: 1,
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          article_id: 9,
+          author: "butter_bridge",
+          created_at: "2020-04-06T12:17:00.000Z",
+          votes: 10,
+        });
+      });
+  });
+  test("400: respond with error if comment_id is not a number", () => {
+    return request(app)
+      .patch("/api/comments/one")
+      .send({ inc_votes: 5 })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no comment with the specified id", () => {
+    return request(app)
+      .patch("/api/comments/20")
+      .send({ inc_votes: 5 })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no comment with this id");
+      });
+  });
+  test("422: respond with error if inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: "five" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("inc_votes must be a number");
+      });
+  });
+  test("422: respond with error if inc_votes is not a given in the patch body", () => {
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ author: "asad" })
+      .expect(422)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("please provide inc_votes");
+      });
+  });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: respond with empty object", () => {
+    return request(app)
+      .delete("/api/comments/11")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+      });
+  });
+  test("400: respond with error if comment_id is not a number", () => {
+    return request(app)
+      .delete("/api/comments/one")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment_id must be a number");
+      });
+  });
+  test("404: respond with error if there is no comment with the given comment_id", () => {
+    return request(app)
+      .delete("/api/comments/20")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no comment with this id");
+      });
+  });
+});
+
+
+
+

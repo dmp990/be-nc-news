@@ -53,6 +53,18 @@ exports.updateArticleById = ({ article_id }, { inc_votes }) => {
     });
 };
 
+exports.removeArticleById = async ({ article_id }) => {
+  if (isNaN(+article_id)) {
+    return Promise.reject({ status: 400, msg: "article_id must be a number" });
+  }
+
+  await checkExists("articles", "article_id", +article_id).catch(() => {
+    return Promise.reject({ status: 404, msg: "no article with this id" });
+  });
+
+  return db.query(`DELETE FROM articles WHERE article_id = $1`, [+article_id]);
+};
+
 exports.fetchArticles = async (query) => {
   let isInvalid = false;
   const validQueries = ["sort_by", "order", "topic", "limit", "p"];
