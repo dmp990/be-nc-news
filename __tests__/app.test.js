@@ -6,7 +6,7 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(300000);
+  jest.setTimeout(500000);
   return seed(testData);
 });
 afterAll(() => {
@@ -703,52 +703,6 @@ describe("POST /api/articles", () => {
   });
 });
 
-describe("GET /api/articles/:article_id/comments", () => {
-  test("200: respond with an array of comments for article_id with each comment having following properties: comment_id, votes, created_at, author, body", () => {
-    return request(app)
-      .get("/api/articles/1/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        expect(comments).toHaveLength(11);
-        comments.forEach((comment) => {
-          expect(comment).toEqual(
-            expect.objectContaining({
-              comment_id: expect.any(Number),
-              votes: expect.any(Number),
-              created_at: expect.any(String),
-              author: expect.any(String),
-              body: expect.any(String),
-            })
-          );
-        });
-      });
-  });
-  test("200: respond with empty array if there are no comments on the article.", () => {
-    return request(app)
-      .get("/api/articles/10/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        expect(comments).toEqual([]);
-      });
-  });
-  test("400: respond with error if article if is not a number.", () => {
-    return request(app)
-      .get("/api/articles/one/comments")
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("article_id must be a number");
-      });
-  });
-  test("404: respond with error if no article exists for the given article_id.", () => {
-    return request(app)
-      .get("/api/articles/150/comments")
-      .expect(404)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("no article with that id");
-      });
-  });
-});
-
 describe("POST /api/articles/:article_id/comments", () => {
   test("201: respond with the posted comment", () => {
     return request(app)
@@ -817,5 +771,119 @@ describe("POST /api/articles/:article_id/comments", () => {
       .then(({ body: { msg } }) => {
         expect(msg).toBe("please provide body");
       });
+  });
+});
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: respond with an array of comments for article_id with each comment having following properties: comment_id, votes, created_at, author, body. Only show 10 comments", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(10);
+        comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  test("200: respond with empty array if there are no comments on the article.", () => {
+    return request(app)
+      .get("/api/articles/10/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+  test("400: respond with error if article if is not a number.", () => {
+    return request(app)
+      .get("/api/articles/one/comments")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article_id must be a number");
+      });
+  });
+  test("404: respond with error if no article exists for the given article_id.", () => {
+    return request(app)
+      .get("/api/articles/150/comments")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no article with that id");
+      });
+  });
+
+  describe("Pagination queries:", () => {
+    test("200: limit the number of comments to the value of limit query", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=5")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toHaveLength(5);
+          comments.forEach((comment) => {
+            expect(comment).toEqual(
+              expect.objectContaining({
+                comment_id: expect.any(Number),
+                votes: expect.any(Number),
+                created_at: expect.any(String),
+                author: expect.any(String),
+                body: expect.any(String),
+              })
+            );
+          });
+        });
+    });
+    test("200: show the relevant comments based on the value of p query. Limit should default to 10", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=2")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toHaveLength(1);
+          expect(comments[0]).toEqual({
+            comment_id: 18,
+            votes: 16,
+            created_at: "2020-07-21T00:20:00.000Z",
+            author: "butter_bridge",
+            body: "This morning, I showered for nine minutes.",
+          });
+        });
+    });
+    test("200: both limit and p should work when used together", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=4&p=3")
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).toHaveLength(3);
+          expect(comments[0]).toEqual({
+            comment_id: 12,
+            votes: 0,
+            created_at: "2020-03-02T07:10:00.000Z",
+            author: "icellusedkars",
+            body: "Massive intercranial brain haemorrhage",
+          });
+        });
+    });
+    test("400: respond with error if limit is not a number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?limit=four")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("limit must be a number")
+        });
+    });
+    test("400: respond with error if p is not a number", () => {
+      return request(app)
+        .get("/api/articles/1/comments?p=two")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("p must be a number");
+        });
+    });
   });
 });
