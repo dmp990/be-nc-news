@@ -6,9 +6,8 @@ const testData = require("../db/data/test-data/index");
 const endPointsObj = require("../endpoints.json");
 
 beforeEach(() => {
-  jest.setTimeout(500000);
   return seed(testData);
-});
+}, 10000);
 afterAll(() => {
   db.end();
 });
@@ -874,7 +873,7 @@ describe("GET /api/articles/:article_id/comments", () => {
         .get("/api/articles/1/comments?limit=four")
         .expect(400)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("limit must be a number")
+          expect(msg).toBe("limit must be a number");
         });
     });
     test("400: respond with error if p is not a number", () => {
@@ -885,5 +884,44 @@ describe("GET /api/articles/:article_id/comments", () => {
           expect(msg).toBe("p must be a number");
         });
     });
+  });
+});
+
+describe("POST /api/topics", () => {
+  test("201: insert a new topic into the database and repond with the posted topic", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ slug: "dog", description: "Not cats" })
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic).toEqual({ slug: "dog", description: "Not cats" });
+      });
+  });
+  test("400: respond with error if slug is not given", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ description: "Not cats" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Please provide both slug and description");
+      });
+  });
+  test("400: respond with error if description is not given", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ slug: "Dog" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Please provide both slug and description");
+      });
+  });
+  test("400: respond with error if slug already exists in the db", () => {
+    return request(app)
+      .post("/api/topics")
+      .send({ slug: "mitch", description: "Not cats" })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("slug already exists!");
+      });
   });
 });

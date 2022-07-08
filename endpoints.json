@@ -91,7 +91,10 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments for the specified article_id",
-    "queries": [],
+    "queries": [
+      "limit",
+      "p"
+    ],
     "exampleResponse": {
       "comments": [
         {
@@ -122,6 +125,16 @@
     "queries": [],
     "exampleResponse": {
       "comment": {}
+    }
+  },
+  "POST /api/topics": {
+    "description": "insert a new topic and respond with the posted topic",
+    "queries": [],
+    "exampleResponse": {
+      "topic": {
+        "slug": "topic name here",
+        "description": "description here"
+      }
     }
   }
 }
