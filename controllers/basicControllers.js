@@ -11,10 +11,8 @@ exports.getEndpoints = (req, res, next) => {
 };
 
 exports.getRoot = (req, res, next) => {
-  res
-    .status(200)
-    .send({
-      message:
-        "Welcome! Please visit /api endpoint to get information about all other endpoints",
-    });
+  res.status(200).send({
+    message:
+      "Welcome! Please visit /api to get a list of all available endpoints",
+  });
 };
