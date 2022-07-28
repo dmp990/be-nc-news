@@ -62,7 +62,7 @@ exports.removeArticleById = async ({ article_id }) => {
     return Promise.reject({ status: 404, msg: "no article with this id" });
   });
 
-  return db.query(`DELETE FROM articles WHERE article_id = $1`, [+article_id]);
+  return db.query(`DELETE FROM articles WHERE article_id = ${+article_id}`);
 };
 
 exports.fetchArticles = async (query) => {
