@@ -12,7 +12,7 @@ exports.handleCustomErrors = (err, req, res, next) => {
 
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
-    res.status("400").send("Bad request: psql error -", err.code);
+    res.status("400").send("Bad request: psql error " + err.code);
   } else {
     next(err);
   }
