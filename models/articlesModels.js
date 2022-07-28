@@ -186,6 +186,10 @@ exports.insertCommentsByArticleId = async (
     return Promise.reject({ status: 404, msg: "no article with that id" });
   });
 
+  await checkExists("users", "username", username).catch(() => {
+    return Promise.reject({ status: 404, msg: "username does not exist" });
+  });
+
   if (username === undefined) {
     return Promise.reject({ status: 400, msg: "please provide username" });
   }
