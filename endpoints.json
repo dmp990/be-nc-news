@@ -99,7 +99,7 @@
     "description": "updates the vote count of article specified by article_id parameter and responds with updated article",
     "queries": [],
     "examplePatchBody": {
-      "incVotes": 50
+      "inc_votes": 50
     },
     "exampleResponse": {
       "article": {
