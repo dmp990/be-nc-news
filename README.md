@@ -6,7 +6,7 @@ This project builds a REST API for the purpose of accessing application data pro
 
 The database is in PSQL, and will be interacted with using [node-postgres](https://node-postgres.com/).
 
-### Heroku Link: https://asads-news-server.herokuapp.com/api
+### Render Link: https://be-nc-news-jtlp.onrender.com/api
 
 # Get Started
 
