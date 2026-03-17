@@ -1,9 +1,11 @@
 const express = require("express");
-const app = express();
+const morgan = require("morgan");
 const cors = require("cors");
 
-app.use(cors());
+const app = express();
 
+app.use(morgan("combined"));
+app.use(cors());
 app.use(express.json());
 
 const { getRoot } = require("./controllers/basicControllers");
