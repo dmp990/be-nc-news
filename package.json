@@ -1,6 +1,9 @@
 {
   "name": "be-nc-news",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22"
+  },
   "description": "bc-nc-news",
   "main": "listen.js",
   "scripts": {
