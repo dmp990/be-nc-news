@@ -13,7 +13,7 @@ const limiter = rateLimit({
   message: "Too many requests, please try again later.",
 });
 
-app.set("trust proxy", true);
+app.set("trust proxy", parseInt(process.env.PROXY_HOPS, 10) || 3);
 
 app.use(limiter);
 app.use(morgan("combined"));
