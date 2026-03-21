@@ -13,7 +13,7 @@ const limiter = rateLimit({
   message: "Too many requests, please try again later.",
 });
 
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 app.use(limiter);
 app.use(morgan("combined"));
@@ -30,6 +30,10 @@ const {
 } = require("./error_handlers/errors");
 
 const apiRouter = require("./routers/api-router");
+
+app.get("/ip", (req, res) => {
+  res.json({ ip: req.ip });
+});
 
 // ROOT
 
