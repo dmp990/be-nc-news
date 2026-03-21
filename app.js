@@ -11,14 +11,9 @@ const limiter = rateLimit({
   standardHeaders: "draft-7", // combined `RateLimit` header
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: "Too many requests, please try again later.",
-  keyGenerator: (req) => {
-    const xForwardedFor = req.headers["x-forwarded-for"];
-    return xForwardedFor ? xForwardedFor.split(",")[0].trim() : req.ip;
-  },
-  validate: { trustProxy: false },
 });
 
-app.set("trust proxy", true);
+app.set("trust proxy", parseInt(process.env.PROXY_HOPS, 10) || 3);
 
 app.use(limiter);
 app.use(morgan("combined"));
