@@ -41,7 +41,7 @@ app.use("/api", apiRouter);
 
 // MIDDLEWARE FN TO HANDLE INVALID ROUTES
 
-app.all("*", handleInvalidRoute);
+app.all("/*splat", handleInvalidRoute);
 
 // ERROR HANDLING MIDDLEWARE
 
