@@ -13,7 +13,7 @@ const limiter = rateLimit({
   message: "Too many requests, please try again later.",
 });
 
-app.set("trust proxy", 2);
+app.set("trust proxy", 3);
 
 app.use(limiter);
 app.use(morgan("combined"));
@@ -32,6 +32,11 @@ const {
 const apiRouter = require("./routers/api-router");
 
 app.get("/ip", (req, res) => {
+  console.log("--- IP DEBUG START ---");
+  console.log("Standard req.ip:", req.ip);
+  console.log("All IPs (req.ips):", req.ips);
+  console.log("X-Forwarded-For Header:", req.headers["x-forwarded-for"]);
+  console.log("--- IP DEBUG END ---");
   res.json({ ip: req.ip });
 });
 
